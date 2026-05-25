@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EverAfter AI — Wedding Planner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #fff1f2, #faf5ff, #eff6ff); color: #3b0764; padding: 30px; }
+    .app { max-width: 1250px; margin: auto; background: rgba(255,255,255,0.92); border-radius: 30px; padding: 34px; box-shadow: 0 25px 70px rgba(88,28,135,0.18); border: 1px solid rgba(168,85,247,0.18); }
+    .badge { display: inline-block; background: #fce7f3; color: #be185d; padding: 8px 14px; border-radius: 999px; font-size: 13px; margin-bottom: 18px; font-weight: bold; }
+    h1 { font-size: 46px; margin-bottom: 12px; color: #7e22ce; }
+    .subtitle { color: #6b21a8; max-width: 900px; line-height: 1.6; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 24px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 34px; } }
+    .panel { background: #fff; border-radius: 24px; padding: 24px; border: 1px solid #f3e8ff; box-shadow: 0 12px 28px rgba(147,51,234,0.08); }
+    label { display: block; margin: 14px 0 7px; font-size: 14px; color: #581c87; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 13px 15px; border-radius: 14px; border: 1px solid #e9d5ff; background: #fdf4ff; color: #3b0764; outline: none; font-size: 15px; }
+    textarea { min-height: 92px; resize: vertical; }
+    button { margin-top: 22px; width: 100%; padding: 15px; border: none; border-radius: 16px; font-size: 16px; font-weight: bold; color: white; background: linear-gradient(90deg, #db2777, #9333ea); cursor: pointer; transition: 0.3s; }
+    button:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(219,39,119,0.32); }
+    .loading { display: none; color: #9333ea; font-style: italic; margin-bottom: 14px; }
+    .section-title { font-size: 22px; color: #7e22ce; margin-bottom: 15px; }
+    .card { background: linear-gradient(135deg, #fff7ed, #fdf2f8); border-left: 5px solid #db2777; padding: 17px; border-radius: 18px; margin-bottom: 14px; line-height: 1.55; color: #4c1d95; }
+    .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
+    @media (max-width: 650px) { .mini-grid { grid-template-columns: 1fr; } }
+    .stat { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 16px; padding: 14px; }
+    .stat strong { color: #be185d; display: block; font-size: 18px; margin-bottom: 4px; }
+    ul { padding-left: 20px; margin-top: 8px; }
+    li { margin-bottom: 7px; }
+    .small { color: #7c3aed; font-size: 13px; line-height: 1.5; margin-top: 12px; }
+    .table-wrap { overflow-x: auto; margin-top: 12px; border-radius: 16px; border: 1px solid #e9d5ff; background: white; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 14px; }
+    th { background: #f3e8ff; color: #581c87; text-align: left; padding: 12px; border: 1px solid #e9d5ff; }
+    td { padding: 11px 12px; border: 1px solid #f3e8ff; color: #4c1d95; background: #fff; }
+    tr:nth-child(even) td { background: #fdf4ff; }
+    .total-row td { background: #fce7f3 !important; font-weight: bold; color: #9d174d; }
+    .supplier-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 12px; }
+    @media (max-width: 800px) { .supplier-grid { grid-template-columns: 1fr; } }
+    .supplier { background: #fff; border: 1px solid #e9d5ff; border-radius: 18px; padding: 15px; box-shadow: 0 8px 18px rgba(147,51,234,0.07); }
+    .supplier h3 { color: #9d174d; margin-bottom: 6px; font-size: 17px; }
+    .pill { display: inline-block; background: #f3e8ff; color: #6b21a8; padding: 5px 9px; border-radius: 999px; font-size: 12px; margin: 4px 4px 7px 0; }
+    .score { height: 10px; background: #f3e8ff; border-radius: 999px; overflow: hidden; margin: 8px 0; }
+    .bar { height: 100%; background: linear-gradient(90deg, #db2777, #9333ea); border-radius: 999px; }
+    .supplier a { color: #7e22ce; font-weight: bold; text-decoration: none; }
+    .risk-high { background: #fee2e2; color: #991b1b; border-left-color: #ef4444; }
+    .risk-medium { background: #fef3c7; color: #92400e; border-left-color: #f59e0b; }
+    .risk-low { background: #dcfce7; color: #166534; border-left-color: #22c55e; }
+    .moodboard { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .swatch { width: 85px; height: 85px; border-radius: 18px; display: flex; align-items: end; justify-content: center; padding: 8px; font-size: 11px; color: white; font-weight: bold; text-shadow: 0 1px 4px rgba(0,0,0,0.35); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <span class="badge">AI-curated wedding marketplace prototype</span>
+    <h1>EverAfter AI</h1>
+    <p class="subtitle">
+      A smart wedding planner for Romania that analyzes city, guest count, budget and style to generate a curated supplier shortlist, compatibility scores, budget risks, moodboards and an Excel-style financial plan.
+    </p>
+
+    <section class="grid">
+      <div class="panel">
+        <label>Couple names</label>
+        <input id="names" placeholder="Example: Ana & Andrei" />
+
+        <label>City in Romania</label>
+        <input id="city" list="romanianCities" placeholder="Example: Bucharest" />
+        <datalist id="romanianCities">
+          <option value="Bucharest"><option value="Cluj-Napoca"><option value="Timișoara"><option value="Iași"><option value="Brașov"><option value="Constanța"><option value="Sibiu"><option value="Oradea"><option value="Craiova"><option value="Galați"><option value="Ploiești"><option value="Pitești"><option value="Arad"><option value="Bacău"><option value="Târgu Mureș"><option value="Baia Mare"><option value="Buzău"><option value="Botoșani"><option value="Satu Mare"><option value="Râmnicu Vâlcea"><option value="Drobeta-Turnu Severin"><option value="Suceava"><option value="Piatra Neamț"><option value="Târgu Jiu"><option value="Târgoviște"><option value="Focșani"><option value="Bistrița"><option value="Tulcea"><option value="Reșița"><option value="Slatina"><option value="Călărași"><option value="Giurgiu"><option value="Alba Iulia"><option value="Deva"><option value="Zalău"><option value="Sfântu Gheorghe"><option value="Miercurea Ciuc"><option value="Slobozia"><option value="Vaslui"><option value="Alexandria"><option value="Brăila"><option value="Hunedoara"><option value="Mediaș"><option value="Roman"><option value="Turda"><option value="Sighișoara"><option value="Mangalia"><option value="Mamaia"><option value="Predeal"><option value="Sinaia"><option value="Bușteni"><option value="Moieciu"><option value="Bran">
+        </datalist>
+
+        <label>Wedding date</label>
+        <input id="date" type="date" />
+
+        <label>Number of guests</label>
+        <input id="guests" type="number" placeholder="Example: 120" />
+
+        <label>Total budget</label>
+        <input id="budget" type="number" placeholder="Example: 25000" />
+
+        <label>Currency</label>
+        <select id="currency">
+          <option value="EUR">EUR</option>
+          <option value="RON">RON</option>
+          <option value="USD">USD</option>
+        </select>
+
+        <label>Wedding style</label>
+        <select id="style">
+          <option value="Elegant romantic">Elegant romantic</option>
+          <option value="Luxury glam">Luxury glam</option>
+          <option value="Boho garden">Boho garden</option>
+          <option value="Minimalist chic">Minimalist chic</option>
+          <option value="Royal fairytale">Royal fairytale</option>
+          <option value="Modern city wedding">Modern city wedding</option>
+        </select>
+
+        <label>Menu preference</label>
+        <select id="menu">
+          <option value="Traditional Romanian">Traditional Romanian</option>
+          <option value="Italian">Italian</option>
+          <option value="Mediterranean">Mediterranean</option>
+          <option value="French fine dining">French fine dining</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Japanese / Sushi">Japanese / Sushi</option>
+          <option value="International buffet">International buffet</option>
+          <option value="Vegetarian / Vegan">Vegetarian / Vegan</option>
+          <option value="Luxury tasting menu">Luxury tasting menu</option>
+          <option value="BBQ / Rustic">BBQ / Rustic</option>
+        </select>
+
+        <label>Priority</label>
+        <select id="priority">
+          <option value="venue and atmosphere">Venue and atmosphere</option>
+          <option value="food and drinks">Food and drinks</option>
+          <option value="music and party">Music and party</option>
+          <option value="photos and video">Photos and video</option>
+          <option value="decor and flowers">Decor and flowers</option>
+        </select>
+
+        <label>Bride zodiac sign</label>
+        <select id="zodiac1">
+          <option>Aries</option><option>Taurus</option><option>Gemini</option><option>Cancer</option><option>Leo</option><option>Virgo</option><option>Libra</option><option>Scorpio</option><option>Sagittarius</option><option>Capricorn</option><option>Aquarius</option><option>Pisces</option>
+        </select>
+
+        <label>Groom zodiac sign</label>
+        <select id="zodiac2">
+          <option>Aries</option><option>Taurus</option><option>Gemini</option><option>Cancer</option><option>Leo</option><option>Virgo</option><option>Libra</option><option>Scorpio</option><option>Sagittarius</option><option>Capricorn</option><option>Aquarius</option><option>Pisces</option>
+        </select>
+
+        <label>Dietary preferences</label>
+        <select id="diet">
+          <option value="Standard menu">Standard menu</option>
+          <option value="Gluten-free">Gluten-free</option>
+          <option value="Lactose-free">Lactose-free</option>
+          <option value="Vegetarian">Vegetarian</option>
+          <option value="Vegan">Vegan</option>
+          <option value="Mixed dietary options">Mixed dietary options</option>
+        </select>
+
+        <label>Alcohol package</label>
+        <select id="alcohol">
+          <option value="Classic open bar">Classic open bar</option>
+          <option value="Premium cocktails & spirits">Premium cocktails & spirits</option>
+          <option value="Wine-focused package">Wine-focused package</option>
+          <option value="Champagne luxury package">Champagne luxury package</option>
+          <option value="Minimal alcohol package">Minimal alcohol package</option>
+          <option value="Alcohol-free wedding">Alcohol-free wedding</option>
+        </select>
+
+        <label>Non-alcoholic package</label>
+        <select id="nonAlcoholic">
+          <option value="Classic soft drinks">Classic soft drinks</option>
+          <option value="Premium mocktail bar">Premium mocktail bar</option>
+          <option value="Fresh juice & smoothie station">Fresh juice & smoothie station</option>
+          <option value="Coffee specialty bar">Coffee specialty bar</option>
+          <option value="Luxury hydration station">Luxury hydration station</option>
+        </select>
+
+        <label>Music & entertainment</label>
+        <select id="musicType">
+          <option value="DJ">DJ</option>
+          <option value="Live band">Live band</option>
+          <option value="DJ + live band">DJ + live band</option>
+          <option value="String quartet">String quartet</option>
+          <option value="Saxophone & lounge music">Saxophone & lounge music</option>
+          <option value="Traditional Romanian music">Traditional Romanian music</option>
+          <option value="Celebrity artist performance">Celebrity artist performance</option>
+        </select>
+
+        <label>Candy bar preference</label>
+        <select id="candyBar">
+          <option value="Classic candy bar">Classic candy bar</option>
+          <option value="Luxury dessert table">Luxury dessert table</option>
+          <option value="French pastry station">French pastry station</option>
+          <option value="Chocolate fountain">Chocolate fountain</option>
+          <option value="Macaron & prosecco corner">Macaron & prosecco corner</option>
+          <option value="Minimal sweets selection">Minimal sweets selection</option>
+        </select>
+
+        <label>Wedding cake preference</label>
+        <select id="cakeType">
+          <option value="Elegant white cake">Elegant white cake</option>
+          <option value="Modern minimalist cake">Modern minimalist cake</option>
+          <option value="Floral romantic cake">Floral romantic cake</option>
+          <option value="Luxury gold-accent cake">Luxury gold-accent cake</option>
+          <option value="Naked rustic cake">Naked rustic cake</option>
+          <option value="Multi-flavor premium cake">Multi-flavor premium cake</option>
+        </select>
+
+        <label>Special wishes</label>
+        <textarea id="wishes" placeholder="Example: outdoor ceremony, live band, champagne tower, pastel flowers..."></textarea>
+
+        <button onclick="generateWeddingPlan()">Generate Wedding Plan</button>
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Your AI Wedding Plan</h2>
+        <div id="loading" class="loading">Analyzing supplier compatibility, budget risk and event strategy...</div>
+        <div id="result"><p class="small">Complete the form and let EverAfter AI design your wedding plan.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const suppliers = [
+      { type: 'Venue', name: 'Le Château', city: 'Bucharest', styles: ['Luxury glam','Royal fairytale','Elegant romantic'], minGuests: 80, maxGuests: 350, priceTier: 'Luxury', estimate: 'High quote / custom offer', note: 'Castle-style event venue in Bucharest.', source: 'https://www.le-chateau.ro/' },
+      { type: 'Venue', name: 'TERRA Events Hall', city: 'Bucharest', styles: ['Modern city wedding','Luxury glam','Elegant romantic'], minGuests: 100, maxGuests: 500, priceTier: 'Premium', estimate: 'Custom offer', note: 'Large event center, suitable for bigger weddings.', source: 'https://www.terraevents.ro/' },
+      { type: 'Venue', name: 'Reina Events Ballroom', city: 'Bucharest', styles: ['Elegant romantic','Luxury glam','Modern city wedding'], minGuests: 80, maxGuests: 400, priceTier: 'Mid-high', estimate: 'Custom offer', note: 'Ballroom venue with garden and multiple salons.', source: 'https://reinaevents.ro/' },
+      { type: 'Venue', name: 'JW Marriott Bucharest Grand Hotel', city: 'Bucharest', styles: ['Luxury glam','Elegant romantic','Royal fairytale'], minGuests: 80, maxGuests: 800, priceTier: 'Luxury', estimate: 'Premium hotel quote', note: 'Hotel ballroom option; largest event room listed up to 800 capacity.', source: 'https://www.marriott.com/en-us/hotels/buhro-jw-marriott-bucharest-grand-hotel/events/' },
+      { type: 'Venue', name: 'Casa Timiș Resort', city: 'Ploiești', styles: ['Elegant romantic','Boho garden','Luxury glam'], minGuests: 50, maxGuests: 250, priceTier: 'Luxury', estimate: 'Approx. 950 RON / person published online', note: 'Destination-style resort venue near Prahova wine area.', source: 'https://casatimis.ro/en/wedding-venue-at-casa-timis-resort/' },
+      { type: 'Venue', name: 'TreeHouse Cosoba', city: 'Bucharest', styles: ['Boho garden','Elegant romantic','Minimalist chic'], minGuests: 50, maxGuests: 300, priceTier: 'Mid-high', estimate: 'Custom offer', note: 'Nature-focused venue near Bucharest, indoor/outdoor spaces.', source: 'https://romaniatourism.com/top-venues-for-getting-married-in-romania.html' },
+      { type: 'Venue', name: 'Kronwell Hotel Events', city: 'Brașov', styles: ['Modern city wedding','Elegant romantic','Luxury glam'], minGuests: 50, maxGuests: 250, priceTier: 'Premium', estimate: 'Custom hotel quote', note: 'Useful for modern weddings in Brașov.', source: 'https://www.google.com/search?q=Kronwell+Hotel+Brasov+wedding+events' },
+      { type: 'Venue', name: 'Ramada Plaza Craiova Events', city: 'Craiova', styles: ['Modern city wedding','Elegant romantic'], minGuests: 50, maxGuests: 250, priceTier: 'Mid-high', estimate: 'Custom hotel quote', note: 'Hotel event option for Craiova weddings.', source: 'https://www.google.com/search?q=Ramada+Plaza+Craiova+wedding+events' },
+      { type: 'Venue', name: 'Hotel International Iași Events', city: 'Iași', styles: ['Elegant romantic','Modern city wedding'], minGuests: 50, maxGuests: 300, priceTier: 'Premium', estimate: 'Custom hotel quote', note: 'Hotel-based wedding/event option in Iași.', source: 'https://www.google.com/search?q=Hotel+International+Iasi+wedding+events' },
+      { type: 'Venue', name: 'Iulius Congress Hall', city: 'Timișoara', styles: ['Modern city wedding','Luxury glam'], minGuests: 80, maxGuests: 600, priceTier: 'Premium', estimate: 'Custom offer', note: 'Large event/conference-style venue in Timișoara.', source: 'https://www.google.com/search?q=Iulius+Congress+Hall+Timisoara+wedding' },
+      { type: 'Planner', name: 'Bucharest Wedding Planner', city: 'Bucharest', styles: ['Luxury glam','Elegant romantic','Royal fairytale','Boho garden'], minGuests: 20, maxGuests: 500, priceTier: 'Premium', estimate: 'Planning packages / custom quote', note: 'Destination wedding planning service in Romania.', source: 'https://bucharestweddingplanner.ro/' },
+      { type: 'Planner', name: 'Milk and Honey Events', city: 'Bucharest', styles: ['Elegant romantic','Luxury glam','Boho garden'], minGuests: 20, maxGuests: 500, priceTier: 'Premium', estimate: 'Custom planning quote', note: 'Wedding and event planning brand.', source: 'https://www.google.com/search?q=Milk+and+Honey+Events+Bucharest+wedding+planner' },
+      { type: 'Photographer', name: 'Adrian Dumitru Photography', city: 'Bucharest', styles: ['Elegant romantic','Minimalist chic','Modern city wedding'], minGuests: 20, maxGuests: 500, priceTier: 'Mid-high', estimate: 'Custom quote', note: 'Wedding photographer based in Bucharest.', source: 'https://www.wpja.com/wedding-photojournalism/bucharest-wedding-photographers' },
+      { type: 'Photographer', name: 'Don + Helen Photography', city: 'Bucharest', styles: ['Elegant romantic','Luxury glam','Royal fairytale'], minGuests: 20, maxGuests: 500, priceTier: 'Premium', estimate: 'Custom quote', note: 'Destination wedding photography experience in Bucharest.', source: 'https://donbringas.com/best-bucharest-wedding-photographer/' },
+      { type: 'Florist', name: 'Local premium florist match', city: 'Any', styles: ['Elegant romantic','Luxury glam','Boho garden','Minimalist chic','Royal fairytale','Modern city wedding'], minGuests: 20, maxGuests: 800, priceTier: 'Variable', estimate: 'From small arrangements to premium decor', note: 'Use this as a city-based florist search placeholder in the MVP.', source: 'https://www.google.com/search?q=wedding+florist+Romania' },
+      { type: 'DJ / Music', name: 'Local DJ / live band match', city: 'Any', styles: ['Elegant romantic','Luxury glam','Boho garden','Minimalist chic','Royal fairytale','Modern city wedding'], minGuests: 20, maxGuests: 800, priceTier: 'Variable', estimate: 'Approx. mid to premium range', note: 'Recommended to compare packages, equipment and event duration.', source: 'https://www.google.com/search?q=wedding+DJ+Romania+live+band' },
+      { type: 'Cake', name: 'Local wedding cake supplier', city: 'Any', styles: ['Elegant romantic','Luxury glam','Boho garden','Minimalist chic','Royal fairytale','Modern city wedding'], minGuests: 20, maxGuests: 800, priceTier: 'Variable', estimate: 'Depends on kg, design and delivery', note: 'Useful for local bakery matching.', source: 'https://www.google.com/search?q=wedding+cake+Romania' },
+      { type: 'Makeup', name: 'Local bridal makeup artist', city: 'Any', styles: ['Elegant romantic','Luxury glam','Boho garden','Minimalist chic','Royal fairytale','Modern city wedding'], minGuests: 1, maxGuests: 20, priceTier: 'Variable', estimate: 'Trial + wedding day package', note: 'Recommended to check portfolio and hygiene standards.', source: 'https://www.google.com/search?q=bridal+makeup+artist+Romania' }
+    ];
+
+    const moodboards = {
+      'Luxury glam': [['#2b124c','Plum'], ['#d4af37','Gold'], ['#f8fafc','Crystal'], ['#111827','Black tie']],
+      'Royal fairytale': [['#7c2d12','Burgundy'], ['#facc15','Royal gold'], ['#fdf2f8','Blush'], ['#312e81','Midnight']],
+      'Boho garden': [['#a16207','Terracotta'], ['#65a30d','Olive'], ['#fef3c7','Cream'], ['#92400e','Wood']],
+      'Elegant romantic': [['#be185d','Rose'], ['#fbcfe8','Blush'], ['#fafaf9','Ivory'], ['#6b7280','Soft grey']],
+      'Minimalist chic': [['#111827','Black'], ['#f8fafc','White'], ['#d6d3d1','Stone'], ['#a8a29e','Taupe']],
+      'Modern city wedding': [['#1e293b','Navy'], ['#c084fc','Lilac'], ['#e5e7eb','Silver'], ['#0f172a','Night']]
+    };
+
+    function money(value, currency) { return `${Math.round(value).toLocaleString()} ${currency}`; }
+    function cityMultiplier(city) {
+      const c = city.toLowerCase();
+      if (['bucharest','cluj-napoca','cluj','timisoara','timișoara','brasov','brașov','iasi','iași','constanta','constanța'].some(x => c.includes(x))) return 1.15;
+      if (['sibiu','oradea','craiova','ploiești','ploiesti','arad'].some(x => c.includes(x))) return 1.03;
+      return 0.92;
+    }
+    function budgetRow(category, percent, amount, currency, note) {
+      return `<tr><td>${category}</td><td>${percent}%</td><td>${money(amount, currency)}</td><td>${note}</td></tr>`;
+    }
+    function scoreSupplier(s, city, guests, style, budgetPerGuest) {
+      let score = 45;
+      if (s.city === city || s.city === 'Any') score += 20;
+      if (s.styles.includes(style)) score += 20;
+      if (guests >= s.minGuests && guests <= s.maxGuests) score += 15;
+      if (s.priceTier === 'Luxury' && budgetPerGuest > 160) score += 8;
+      if (s.priceTier === 'Premium' && budgetPerGuest > 120) score += 8;
+      if (s.priceTier === 'Mid-high' && budgetPerGuest > 80) score += 8;
+      if (budgetPerGuest < 70 && ['Luxury','Premium'].includes(s.priceTier)) score -= 15;
+      return Math.max(35, Math.min(99, score));
+    }
+    function supplierCard(s, score) {
+      return `<div class="supplier"><h3>${s.name}</h3><span class="pill">${s.type}</span><span class="pill">${s.city}</span><span class="pill">${s.priceTier}</span><p><strong>Compatibility:</strong> ${score}%</p><div class="score"><div class="bar" style="width:${score}%"></div></div><p><strong>Price info:</strong> ${s.estimate}</p><p>${s.note}</p><a href="${s.source}" target="_blank">View source / verify</a></div>`;
+    }
+    function generateWeddingPlan() {
+      const names = document.getElementById('names').value || 'The Couple';
+      const city = document.getElementById('city').value || 'Bucharest';
+      const date = document.getElementById('date').value || 'your chosen date';
+      const guests = Number(document.getElementById('guests').value) || 100;
+      const budget = Number(document.getElementById('budget').value) || 20000;
+      const currency = document.getElementById('currency').value;
+      const style = document.getElementById('style').value;
+      const menu = document.getElementById('menu').value;
+      const priority = document.getElementById('priority').value;
+      const zodiac1 = document.getElementById('zodiac1').value;
+      const zodiac2 = document.getElementById('zodiac2').value;
+      const diet = document.getElementById('diet').value;
+      const alcohol = document.getElementById('alcohol').value;
+      const nonAlcoholic = document.getElementById('nonAlcoholic').value;
+      const musicType = document.getElementById('musicType').value;
+      const candyBar = document.getElementById('candyBar').value;
+      const cakeType = document.getElementById('cakeType').value;
+      const wishes = document.getElementById('wishes').value || 'a memorable, elegant and well-organized wedding experience';
+      const result = document.getElementById('result');
+      const loading = document.getElementById('loading');
+
+      loading.style.display = 'block';
+      result.innerHTML = '';
+
+      setTimeout(() => {
+        loading.style.display = 'none';
+        const multiplier = cityMultiplier(city);
+        const adjustedBudget = budget * multiplier;
+        const alcoholMultipliers = {
+          'Classic open bar': 1.00,
+          'Premium cocktails & spirits': 1.25,
+          'Wine-focused package': 1.10,
+          'Champagne luxury package': 1.40,
+          'Minimal alcohol package': 0.82,
+          'Alcohol-free wedding': 0.55
+        };
+
+        const musicMultipliers = {
+          'DJ': 1.00,
+          'Live band': 1.35,
+          'DJ + live band': 1.60,
+          'String quartet': 1.22,
+          'Saxophone & lounge music': 1.18,
+          'Traditional Romanian music': 1.28,
+          'Celebrity artist performance': 2.20
+        };
+
+        const candyMultipliers = {
+          'Classic candy bar': 1.00,
+          'Luxury dessert table': 1.22,
+          'French pastry station': 1.18,
+          'Chocolate fountain': 1.12,
+          'Macaron & prosecco corner': 1.30,
+          'Minimal sweets selection': 0.75
+        };
+
+        const cakeMultipliers = {
+          'Elegant white cake': 1.00,
+          'Modern minimalist cake': 1.08,
+          'Floral romantic cake': 1.15,
+          'Luxury gold-accent cake': 1.30,
+          'Naked rustic cake': 0.92,
+          'Multi-flavor premium cake': 1.25
+        };
+
+        const dietMultipliers = {
+          'Standard menu': 1.00,
+          'Gluten-free': 1.15,
+          'Lactose-free': 1.10,
+          'Vegetarian': 1.05,
+          'Vegan': 1.12,
+          'Mixed dietary options': 1.18
+        };
+
+        const menuMultipliers = {
+          'Traditional Romanian': 1.00,
+          'Italian': 1.08,
+          'Mediterranean': 1.10,
+          'French fine dining': 1.25,
+          'Chinese': 1.05,
+          'Japanese / Sushi': 1.30,
+          'International buffet': 0.95,
+          'Vegetarian / Vegan': 1.07,
+          'Luxury tasting menu': 1.40,
+          'BBQ / Rustic': 0.92
+        };
+
+        const cateringPercent = 0.24 * menuMultipliers[menu] * dietMultipliers[diet] * alcoholMultipliers[alcohol];
+        const remainingPercent = 1 - cateringPercent - 0.05;
+        const venuePercent = remainingPercent * 0.43;
+        const decorPercent = remainingPercent * 0.16;
+        const photoPercent = remainingPercent * 0.13;
+        const musicPercent = (remainingPercent * 0.11) * musicMultipliers[musicType];
+        const candyPercent = (remainingPercent * 0.05) * candyMultipliers[candyBar];
+        const cakePercent = (remainingPercent * 0.04) * cakeMultipliers[cakeType];
+        const outfitsBeautyPercent = remainingPercent * 0.08;
+        const stationeryPercent = remainingPercent * 0.04;
+        const transportPercent = remainingPercent * 0.05;
+
+        const venue = adjustedBudget * venuePercent;
+        const catering = adjustedBudget * cateringPercent;
+        const decor = adjustedBudget * decorPercent;
+        const photo = adjustedBudget * photoPercent;
+        const music = adjustedBudget * musicPercent;
+        const outfitsBeauty = adjustedBudget * outfitsBeautyPercent;
+        const stationery = adjustedBudget * stationeryPercent;
+        const transport = adjustedBudget * transportPercent;
+        const candyBudget = adjustedBudget * candyPercent;
+        const cakeBudget = adjustedBudget * cakePercent;
+        const contingency = adjustedBudget * 0.05;
+        const perGuest = budget / guests;
+
+        const ranked = suppliers
+          .map(s => ({...s, score: scoreSupplier(s, city, guests, style, perGuest)}))
+          .sort((a,b) => b.score - a.score)
+          .slice(0, 8);
+
+        let riskClass = 'risk-low';
+        let riskText = 'Low risk: your budget looks realistic for the selected guest count and style, assuming you compare suppliers carefully.';
+        if (perGuest < 80) { riskClass = 'risk-high'; riskText = 'High risk: the budget per guest is low for a full-service wedding. Reduce guest count, choose a simpler venue, or increase the budget.'; }
+        else if (perGuest < 130) { riskClass = 'risk-medium'; riskText = 'Medium risk: possible, but you will need careful supplier comparison and fewer luxury extras.'; }
+        else if (['Luxury glam','Royal fairytale'].includes(style) && perGuest < 170) { riskClass = 'risk-medium'; riskText = 'Medium risk: your style is premium, so decor, venue and photo/video may push costs higher.'; }
+
+        const colors = moodboards[style].map(c => `<div class="swatch" style="background:${c[0]}">${c[1]}</div>`).join('');
+
+        const zodiacDescriptions = {
+          Aries: 'bold, energetic and passionate',
+          Taurus: 'elegant, loyal and comfort-oriented',
+          Gemini: 'social, dynamic and spontaneous',
+          Cancer: 'emotional, romantic and family-oriented',
+          Leo: 'luxurious, confident and expressive',
+          Virgo: 'organized, detail-oriented and practical',
+          Libra: 'balanced, aesthetic and relationship-focused',
+          Scorpio: 'intense, magnetic and emotionally deep',
+          Sagittarius: 'adventurous, optimistic and free-spirited',
+          Capricorn: 'disciplined, ambitious and classic',
+          Aquarius: 'creative, unconventional and modern',
+          Pisces: 'dreamy, artistic and deeply emotional'
+        };
+
+        const zodiacCompatibility = Math.floor(Math.random() * 16) + 82;
+
+        result.innerHTML = `
+          <div class="card"><strong>Wedding Concept</strong><br>For <strong>${names}</strong>, EverAfter AI recommends a <strong>${style}</strong> wedding in <strong>${city}</strong>, focused on <strong>${priority}</strong>, with a <strong>${menu}</strong> menu, <strong>${musicType}</strong> entertainment and a <strong>${cakeType}</strong>. Wishes detected: ${wishes}.</div>
+          <div class="mini-grid"><div class="stat"><strong>${guests}</strong>Guests</div><div class="stat"><strong>${money(perGuest, currency)}</strong>Budget / guest</div><div class="stat"><strong>${date}</strong>Wedding date</div><div class="stat"><strong>${money(budget, currency)}</strong>Total budget</div></div>
+          <div class="card ${riskClass}"><strong>Smart Budget Risk Detector</strong><br>${riskText}</div>
+          <div class="card"><strong>Zodiac Compatibility Analysis</strong><br><strong>${zodiac1}</strong> personalities are typically ${zodiacDescriptions[zodiac1]}, while <strong>${zodiac2}</strong> personalities are often ${zodiacDescriptions[zodiac2]}.<br><br>EverAfter AI predicts strong romantic compatibility and complementary wedding energy between these signs.
+          <div class="score"><div class="bar" style="width:${zodiacCompatibility}%"></div></div>
+          <strong>Compatibility Score: ${zodiacCompatibility}%</strong><br><br>
+          Based on your zodiac combination, the app recommends a <strong>${style.toLowerCase()}</strong> atmosphere with emotionally memorable moments, personalized vows and immersive guest experiences.
+          </div>
+
+          <div class="card"><strong>AI Moodboard</strong><br>Recommended color direction for ${style}:<div class="moodboard">${colors}</div></div>
+          <div class="card"><strong>Curated Venues & Suppliers</strong><br>Ranked by city match, style match, guest capacity and budget fit. Prices are orientative or supplier-provided where available; final quotes must be confirmed directly with each vendor.<div class="supplier-grid">${ranked.map(s => supplierCard(s, s.score)).join('')}</div></div>
+          <div class="card"><strong>Excel-Style Budget Planner</strong><br><div class="table-wrap"><table><thead><tr><th>Category</th><th>% of Budget</th><th>Estimated Amount</th><th>Planning Note</th></tr></thead><tbody>${budgetRow('Venue', Math.round(venuePercent * 100), venue, currency, 'Location, room rental, basic setup')}${budgetRow('Catering & Drinks', Math.round(cateringPercent * 100), catering, currency, menu + ' menu, drinks, service staff')}${budgetRow('Decor & Flowers', Math.round(decorPercent * 100), decor, currency, 'Florals, candles, table design, ceremony decor')}${budgetRow('Photo & Video', Math.round(photoPercent * 100), photo, currency, 'Photographer, videographer, editing')}${budgetRow('Music & Entertainment', Math.round(musicPercent * 100), music, currency, musicType + ' package')}${budgetRow('Candy Bar & Desserts', Math.round(candyPercent * 100), candyBudget, currency, candyBar)}${budgetRow('Wedding Cake', Math.round(cakePercent * 100), cakeBudget, currency, cakeType)}${budgetRow('Outfits & Beauty', Math.round(outfitsBeautyPercent * 100), outfitsBeauty, currency, 'Dress/suit, makeup, hair, accessories')}${budgetRow('Stationery & Favors', Math.round(stationeryPercent * 100), stationery, currency, 'Invitations, menus, guest gifts')}${budgetRow('Transport & Logistics', Math.round(transportPercent * 100), transport, currency, 'Guest transport, delivery, supplier logistics')}${budgetRow('Emergency Reserve', 5, contingency, currency, 'Unexpected costs and last-minute changes')}<tr class="total-row"><td>Total adjusted estimate</td><td>100%</td><td>${money(adjustedBudget, currency)}</td><td>Adjusted by city cost factor</td></tr></tbody></table></div></div>
+          <div class="card"><strong>Personalized Recommendations</strong><ul><li>Choose a venue that already matches the ${style.toLowerCase()} aesthetic to reduce decoration costs.</li><li>The selected ${menu} menu and ${diet} requirements dynamically adjust catering costs.</li><li>The ${alcohol} and ${nonAlcoholic} packages also influence the beverage allocation.</li><li>The chosen entertainment option (${musicType}) affects the entertainment budget calculation.</li><li>The selected ${candyBar} and ${cakeType} options modify dessert and cake estimates.</li><li>Prioritize ${priority}, because this will define the guest experience.</li><li>Compare at least 3 suppliers before signing contracts.</li><li>Ask every supplier for a written offer, deposit policy, cancellation rules and what is included.</li></ul></div>
+          <div class="card"><strong>Planning Timeline</strong><ul><li>12 months before: choose venue, date, theme and approximate guest list.</li><li>9 months before: book photographer, videographer, music and catering.</li><li>6 months before: decide dress, invitations, flowers and ceremony structure.</li><li>3 months before: confirm menu, seating plan and supplier details.</li><li>1 month before: final confirmations, beauty appointments and emergency kit.</li><li>Wedding week: relax, delegate tasks and enjoy the moment.</li></ul></div>
+          <p class="small">Prototype note: this is an MVP dataset, not a booking platform. It combines curated Romanian supplier examples, heuristic AI-style scoring and orientative cost modelling. A production version would use Google Places API, supplier APIs and live quote requests.</p>
+        `;
+      }, 1400);
+    }
+  </script>
+</body>
+</html>
